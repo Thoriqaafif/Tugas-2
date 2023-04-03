@@ -3,6 +3,7 @@
     - menyesuaikan error response dengan format
     - error tipe data tidak sesuai
     - update tidak perlu semua field
+    - 1 url 1 endpoint
 */
 const express=require("express");
 const app=express();
@@ -87,7 +88,7 @@ app.get('/buku/:id', (req, res) => {
 });
 
 //Create New Book
-app.post('/', (req, res) => {
+app.post('/post', (req, res) => {
     const { id,judul,kategori,harga,tersedia }=req.body;
     
     // error: data tidak lengkap
@@ -102,11 +103,11 @@ app.post('/', (req, res) => {
     bookdb.push({id,judul,kategori,harga,tersedia});
 
     // success dengan pengembalian data
-    res.status(201).json({ data:bookdb });
+    res.status(200).json({ data:bookdb });
 });
 
 //update data by id
-app.put('/buku/:id', (req, res) => {
+app.put('/put/buku/:id', (req, res) => {
     const id=req.params.id;
     const {judul,kategori,harga,tersedia}=req.body;
 
@@ -116,17 +117,21 @@ app.put('/buku/:id', (req, res) => {
     if(!book)
         return res.status(400).json({message:`Buku dengan id ${id} tidak ditemukan`});
 
-    book.judul=judul;
-    book.kategori=kategori;
-    book.harga=harga;
-    book.tersedia=tersedia;
+    if(judul)
+        book.judul=judul;
+    if(kategori)
+        book.kategori=kategori;
+    if(kategori)
+        book.harga=harga;
+    if(tersedia)
+        book.tersedia=tersedia;
 
     // success dengan pengembalian data
-    res.status(201).json({data:bookdb});
+    res.status(200).json({data:bookdb});
 });
 
 //delete book data by id
-app.delete('/buku/:id', (req,res) => {
+app.delete('/del/buku/:id', (req,res) => {
     const id=req.params.id;
 
     const book=bookdb.find(book => book.id==id);
@@ -139,7 +144,7 @@ app.delete('/buku/:id', (req,res) => {
     bookdb.splice(bookIndex,1);
 
     // succes dengan message
-    res.status(201).json({
+    res.status(200).json({
         message:`Buku dengan id ${id} berhasil dihapus`
     });
 });
