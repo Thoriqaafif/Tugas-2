@@ -75,12 +75,16 @@ app.get('/buku', (req, res) => {
 //get book data by id
 app.get('/buku/:id', (req, res) => {
     const id=req.params.id;
+    errors=[];
+    errorId=[];
 
     const book=bookdb.find(book => book.id==id);
 
     // error : id buku tidak ada
     if(!book){
-        return res.status(404).json({message:`Buku dengan id ${id} tidak ditemukan`});
+        errorId.push(`Tidak terdapat buku dengan id ${id}`);
+        errors.push({"id":errorId})
+        return res.status(404).json({"errors":errors});
     }
 
     // success dengan pengembalian data buku
@@ -88,17 +92,64 @@ app.get('/buku/:id', (req, res) => {
 });
 
 //Create New Book
-app.post('/post', (req, res) => {
+app.post('/buku/post', (req, res) => {
     const { id,judul,kategori,harga,tersedia }=req.body;
-    
-    // error: data tidak lengkap
-    if(!id || !judul || !kategori || !harga || tersedia==undefined)
-        return res.status(400).json({message: "id, judul, kategori, harga, dan tersedia harus diisi"});
-
-    //id tidak boleh sama
+    error=[];
+    errorId=[];
+    errorJudul=[];
+    errorKategori=[];
+    errorHarga=[];
+    errorTersedia=[];
     const book=bookdb.find(book => book.id==id);
+    
+    //id tidak dimasukkan
+    if(typeof id=="undefined")
+        errorId.push("id harus diisi");
+    //id duplikat
     if(book)
-        return res.status(400).json({message: `Terdapat buku dengan id ${id}, gunakan id lain`});
+        errorId.push(`Terdapat buku lain dengan id ${id}, gunakan id lain`);
+    //id bukan angka
+    if(typeof id != "number")
+        errorId.push("id harus berupa bilangan");
+    if(errorId.length!=0)
+        error.push({"id": errorId});
+    
+    //judul tidak dimasukkan
+    if(typeof judul=="undefined")
+        errorJudul.push("judul harus diisi");
+    //judul bukan string
+    if(typeof judul != "string")
+        errorJudul.push("judul harus berupa string");
+    if(errorJudul.length!=0)
+        error.push({"judul": errorJudul});
+
+    //kategori tidak dimasukkan
+    if(typeof kategori=="undefined")
+        errorKategori.push("kategori harus diisi");
+    //kategori bukan berupa string
+    if(typeof kategori != "string")
+        errorKategori.push("kategori harus berupa string");
+    if(errorKategori.length!=0)
+        error.push({"kategori": errorKategori});
+
+    //harga tidak dimasukkan
+    if(typeof harga=="undefined")
+        errorHarga.push("harga harus diisi");
+    if(typeof harga != "number")
+        errorHarga.push("harga harus berupa bilangan");
+    if(errorHarga.length!=0)
+        error.push({"harga": errorHarga});
+
+    //tersedia tidak diisi
+    if(typeof tersedia=="undefined")
+        errorTersedia.push("tersedia harus diisi");
+    if(typeof tersedia != "bool")
+        errorTersedia.push("tersedia harus berupa boolean");
+    if(errorTersedia.length!=0)
+        error.push({"tersedia": errorTersedia});
+
+    if(error.length!=0)
+        return res.status(400).json({"errors":error});
 
     bookdb.push({id,judul,kategori,harga,tersedia});
 
@@ -107,43 +158,79 @@ app.post('/post', (req, res) => {
 });
 
 //update data by id
-app.put('/put/buku/:id', (req, res) => {
+app.put('/buku/put/:id', (req, res) => {
     const id=req.params.id;
     const {judul,kategori,harga,tersedia}=req.body;
+    error=[];
+    errorJudul=[];
+    errorKategori=[];
+    errorHarga=[];
+    errorTersedia=[];
 
     const book=bookdb.find(book => book.id==id);
 
     //error: id buku tidak ada
-    if(!book)
-        return res.status(400).json({message:`Buku dengan id ${id} tidak ditemukan`});
+    if(!book){
+        error.push({"id":`Buku dengan id ${id} tidak ditemukan`})
+        return res.status(404).json({"errors":error});
+    }
 
-    if(judul)
+    //judul bukan string
+    if(typeof judul != "string" && typeof judul!="undefined"){
+        errorJudul.push("judul harus berupa string");
+        error.push({"judul": errorJudul});
+    }
+
+    //kategori bukan berupa string
+    if(typeof kategori != "string" && typeof kategori!="undefined"){
+        errorKategori.push("kategori harus berupa string");
+        error.push({"kategori": errorKategori});
+    }
+
+    //harga bukan number
+    if(typeof harga != "number" && typeof harga!="undefined"){
+        errorHarga.push("harga harus berupa bilangan");
+        error.push({"harga": errorHarga});
+    }
+
+    //tersedia bukan boolean
+    if(typeof tersedia != "bool" && typeof tersedia!="undefined"){
+        errorTersedia.push("tersedia harus berupa boolean");
+        error.push({"tersedia": errorTersedia});
+    }
+
+    //terdapat error input
+    if(error.length > 0){
+        return res.status(400).json({"errors":error});
+    }
+
+    if(typeof judul!="undefined")
         book.judul=judul;
-    if(kategori)
+    if(typeof kategori!="undefined")
         book.kategori=kategori;
-    if(kategori)
+    if(typeof harga!="undefined")
         book.harga=harga;
-    if(tersedia)
+    if(typeof tersedia!="undefined")
         book.tersedia=tersedia;
 
     // success dengan pengembalian data
-    res.status(200).json({data:bookdb});
+    res.status(200).json({data:book});
 });
 
 //delete book data by id
-app.delete('/del/buku/:id', (req,res) => {
+app.delete('/buku/del/:id', (req,res) => {
     const id=req.params.id;
 
     const book=bookdb.find(book => book.id==id);
 
     // error : buku tidak ditemukan
     if(!book)
-        return res.status(400).json({message:`Buku dengan id ${id} tidak ditemukan`});
+        return res.status(404).json({message:`Buku dengan id ${id} tidak ditemukan`});
 
     const bookIndex=bookdb.indexOf(book);
     bookdb.splice(bookIndex,1);
 
-    // succes dengan message
+    // success dengan message
     res.status(200).json({
         message:`Buku dengan id ${id} berhasil dihapus`
     });
