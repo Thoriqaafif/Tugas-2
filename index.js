@@ -143,7 +143,7 @@ app.post('/buku/post', (req, res) => {
     //tersedia tidak diisi
     if(typeof tersedia=="undefined")
         errorTersedia.push("tersedia harus diisi");
-    if(typeof tersedia != "bool")
+    if(typeof tersedia != "boolean")
         errorTersedia.push("tersedia harus berupa boolean");
     if(errorTersedia.length!=0)
         error.push({"tersedia": errorTersedia});
@@ -194,7 +194,7 @@ app.put('/buku/put/:id', (req, res) => {
     }
 
     //tersedia bukan boolean
-    if(typeof tersedia != "bool" && typeof tersedia!="undefined"){
+    if(typeof tersedia != "boolean" && typeof tersedia!="undefined"){
         errorTersedia.push("tersedia harus berupa boolean");
         error.push({"tersedia": errorTersedia});
     }
